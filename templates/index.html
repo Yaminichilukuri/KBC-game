@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KBC Style Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .question { font-size: 20px; margin: 20px; }
+        .options { margin: 20px; }
+        .option { margin: 10px; }
+    </style>
+</head>
+<body>
+    <div class="question">{{ question }}</div>
+    <div class="options">
+        <form id="answer-form">
+            {% for option in options %}
+                <div class="option">
+                    <input type="radio" name="answer" value="{{ option }}" required> {{ option }}
+                </div>
+            {% endfor %}
+            <input type="text" name="name" placeholder="Enter your name" required>
+            <button type="submit">Submit Answer</button>
+        </form>
+    </div>
+    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+    <div id="result"></div>
+    <script>
+        document.getElementById('answer-form').onsubmit = function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('/question/{{ current_question_index }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                if (data.status === 'correct') {
+                    resultDiv.innerHTML = `Congratulations ${data.name}!`;
+                    setTimeout(() => {
+                        window.location.reload();  // Reload the page to show the next question
+                    }, 2000);
+                } else {
+                    resultDiv.innerHTML = 'Your answer is wrong. Try again!';
+                }
+            });
+        };
+    </script>
+</body>
+</html>
